@@ -38,6 +38,11 @@ class NasaController {
     @Value("${nasa.api.key}")
     private String apiKey;
 
+    @GetMapping("/")
+    public ModelAndView showCalendar() {
+        return new ModelAndView("index");
+    }
+
     @GetMapping("/picture")
     public ModelAndView getAstronomyPictureOfTheDay(@RequestParam(required = false) LocalDate date, ModelMap model) {
         logger.info("Getting Astronomy Picture of the Day, date: {}", date);
@@ -51,7 +56,7 @@ class NasaController {
         PictureResponse response = restTemplate.getForObject(url, PictureResponse.class);
         logger.debug("Received NASA response: {}", response);
         model.addAttribute(PICTURE, response);
-        return new ModelAndView(PICTURE,model);
+        return new ModelAndView("index",model);
     }
 
     @GetMapping("/neo")
