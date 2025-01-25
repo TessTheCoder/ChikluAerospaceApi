@@ -2,6 +2,8 @@ package io.github.TessTheCoder.ChikluAerospace.controller;
 
 import io.github.TessTheCoder.ChikluAerospace.dto.NeoResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.PictureResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +18,8 @@ import java.time.format.DateTimeFormatter;
 
 @Controller
 class NasaController {
+    private static final Logger logger = LoggerFactory.getLogger(NasaController.class);
+
     public static final String PICTURE = "picture";
     public static final String API_KEY = "api_key";
     private final RestTemplate restTemplate;
@@ -34,6 +38,7 @@ class NasaController {
 
     @GetMapping("/picture")
     public ModelAndView getAstronomyPictureOfTheDay(@RequestParam(required = false) LocalDate date, Model model) {
+        logger.info("Getting Astronomy Picture of the Day, date: {}", date);
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(nasaBaseUrl)
                 .path(NASA_APOD_URL)
                 .queryParam(API_KEY, apiKey)
@@ -42,6 +47,7 @@ class NasaController {
         String url = uriComponentsBuilder.toUriString();
 
         PictureResponse response = restTemplate.getForObject(url, PictureResponse.class);
+        logger.debug("Received NASA response: {}", response);
         model.addAttribute(PICTURE, response);
         return new ModelAndView(PICTURE);
     }
