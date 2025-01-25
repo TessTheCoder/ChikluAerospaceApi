@@ -1,5 +1,6 @@
 package io.github.TessTheCoder.ChikluAerospace.controller;
 
+import io.github.TessTheCoder.ChikluAerospace.dto.IssLocationResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.NeoResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.PictureResponse;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -53,10 +55,16 @@ class NasaController {
 
         String url = uriComponentsBuilder.toUriString();
 
-        PictureResponse response = restTemplate.getForObject(url, PictureResponse.class);
-        logger.debug("Received NASA response: {}", response);
-        model.addAttribute(PICTURE, response);
-        return new ModelAndView("index",model);
+        try {
+            PictureResponse response = restTemplate.getForObject(url, PictureResponse.class);
+            logger.debug("Received NASA response: {}", response);
+            model.addAttribute(PICTURE, response);
+        } catch (HttpClientErrorException e) {
+            logger.error("Error fetching picture: {}", e.getMessage());
+            model.addAttribute("error", e.getResponseBodyAsString());
+        }
+
+        return new ModelAndView("index", model);
     }
 
     @GetMapping("/neo")
@@ -72,6 +80,20 @@ class NasaController {
         NeoResponse response = restTemplate.getForObject(url, NeoResponse.class);
         model.addAttribute("neoResponse", response);
         return new ModelAndView("neo", model);
+    }
+
+    @GetMapping("/iss-location")
+    public ModelAndView getIssLocation(ModelMap model) {
+        String url = "http://api.open-notify.org/iss-now.json";
+
+        try {
+            IssLocationResponse response = restTemplate.getForObject(url, IssLocationResponse.class);
+            model.addAttribute("issLocation", response);
+        } catch (HttpClientErrorException e) {
+            model.addAttribute("error", e.getResponseBodyAsString());
+        }
+
+        return new ModelAndView("iss-location", model);
     }
 
     private static String getDateIfRequired(LocalDate date) {

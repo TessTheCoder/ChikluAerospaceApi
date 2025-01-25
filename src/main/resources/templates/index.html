@@ -1,27 +1,39 @@
 <!DOCTYPE html>
-    <html xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Astronomy Picture of the Day</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body class="bg-light">
-    <div class="container py-5">
-        <h1 class="mb-4">Select a Date</h1>
-        <form id="dateForm" action="/api/v1/nasa/picture" method="get" class="mb-4">
-            <div class="mb-3">
-                <label for="date" class="form-label">Date:</label>
-                <input type="date" id="date" name="date" class="form-control">
-            </div>
-        </form>
-        <div th:if="${picture}">
-            <div th:replace="picture :: pictureFragment"></div>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Astronomy Picture of the Day</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .spinner-border {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <h1 class="mb-4">Select a Date</h1>
+    <form id="dateForm" action="/api/v1/nasa/picture" method="get" class="mb-4">
+        <div class="mb-3">
+            <label for="date" class="form-label">Date:</label>
+            <input type="date" id="date" name="date" class="form-control">
         </div>
+    </form>
+    <div class="spinner-border text-primary" role="status" id="loadingSpinner">
+        <span class="visually-hidden">Loading...</span>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.getElementById('date').addEventListener('change', function() {
-            document.getElementById('dateForm').submit();
-        });
-    </script>
-    </body>
-    </html>
+    <div th:if="${error}">
+        <div class="alert alert-danger" th:text="${error}"></div>
+    </div>
+    <div th:if="${picture}">
+        <div th:replace="~{picture :: pictureFragment}"></div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('date').addEventListener('change', function () {
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('dateForm').submit();
+    });
+</script>
+</body>
+</html>
