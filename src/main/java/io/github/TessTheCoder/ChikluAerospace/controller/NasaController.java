@@ -1,6 +1,5 @@
 package io.github.TessTheCoder.ChikluAerospace.controller;
 
-git remote add origin https://github.com/TessTheCoder/ChikluAerospaceApi.git
 import io.github.TessTheCoder.ChikluAerospace.dto.NeoResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.PictureResponse;
 import org.springframework.beans.factory.annotation.Value;
