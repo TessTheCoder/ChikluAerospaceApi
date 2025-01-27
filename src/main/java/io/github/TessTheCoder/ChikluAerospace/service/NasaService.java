@@ -20,14 +20,15 @@ public class NasaService {
     private static final String NASA_APOD_URL = "planetary/apod";
     private static final String NASA_NEO_URL = "neo/rest/v1/feed";
     public static final String API_KEY = "api_key";
-    @Value("${nasa.api.base}")
-    private String nasaBaseUrl;
 
-    @Value("${nasa.api.key}")
+
+    private String nasaBaseUrl;
     private String apiKey;
 
 
-    public NasaService(RestTemplate restTemplate) {
+    public NasaService(RestTemplate restTemplate,@Value("${nasa.api.base}") String nasaBaseUrl,@Value("${nasa.api.key}") String apiKey) {
+        this.nasaBaseUrl = nasaBaseUrl;
+        this.apiKey = apiKey;
         this.restTemplate = restTemplate;
     }
 
