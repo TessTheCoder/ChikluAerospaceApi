@@ -3,16 +3,20 @@ package io.github.TessTheCoder.ChikluAerospace.service;
 import io.github.TessTheCoder.ChikluAerospace.dto.EmailRequest;
 import io.github.TessTheCoder.ChikluAerospace.dto.NeoResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.PictureResponse;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -20,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class NasaService {
     private final RestTemplate restTemplate;
+    private final SpringTemplateEngine templateEngine;
     private static final Logger logger = LoggerFactory.getLogger(NasaService.class);
 
     private static final String NASA_APOD_URL = "planetary/apod";
@@ -30,10 +35,14 @@ public class NasaService {
     private final String apiKey;
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.sender}")
+    private String senderEmail;
+
     @Autowired
-    public NasaService(RestTemplate restTemplate, JavaMailSender mailSender,
+    public NasaService(RestTemplate restTemplate, SpringTemplateEngine templateEngine, JavaMailSender mailSender,
                        @Value("${nasa.api.base}") String nasaBaseUrl,
                        @Value("${nasa.api.key}") String apiKey) {
+        this.templateEngine = templateEngine;
         this.nasaBaseUrl = nasaBaseUrl;
         this.apiKey = apiKey;
         this.restTemplate = restTemplate;
@@ -75,18 +84,25 @@ public class NasaService {
         return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
-    // Send email
     public String sendEmail(EmailRequest emailRequest) {
-
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(emailRequest.getReceiverEmail());
-            message.setSubject("NASA Data Update");
-            message.setText(emailRequest.getMessage());
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
         try {
-            mailSender.send(message);
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+            helper.setTo(emailRequest.getReceiverEmail());
+            helper.setSubject("Welcome to Chiklu Aerospace");
+            helper.setFrom(senderEmail);
+
+            // Create the email body using Thymeleaf
+            Context context = new Context();
+            context.setVariable("name", emailRequest.getReceiverEmail());
+            String htmlContent = templateEngine.process("welcome-email", context);
+
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
             logger.info("Email sent successfully to {}", emailRequest.getReceiverEmail());
             return "Email sent successfully!";
-        } catch (MailException e) {
+        } catch (MailException | MessagingException e) {
             logger.error("Error while sending email: {}", e.getMessage());
             return "Failed to send email!";
         }

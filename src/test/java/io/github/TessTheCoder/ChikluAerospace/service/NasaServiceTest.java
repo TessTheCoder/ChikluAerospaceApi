@@ -7,7 +7,9 @@ package io.github.TessTheCoder.ChikluAerospace.service;
     import org.mockito.InjectMocks;
     import org.mockito.Mock;
     import org.mockito.MockitoAnnotations;
+    import org.springframework.mail.javamail.JavaMailSender;
     import org.springframework.web.client.RestTemplate;
+    import org.thymeleaf.spring6.SpringTemplateEngine;
 
     import java.time.LocalDate;
 
@@ -20,17 +22,23 @@ package io.github.TessTheCoder.ChikluAerospace.service;
         @Mock
         private RestTemplate restTemplate;
 
+        @Mock
+        SpringTemplateEngine templateEngine;
+
+        @Mock
+        private JavaMailSender mailSender;
+
         @InjectMocks
         private NasaService nasaService;
 
-        private String nasaBaseUrl="https://api.nasa.gov/";
+        private final String nasaBaseUrl="https://api.nasa.gov/";
 
-        private String apiKey="DEMO_KEY";
+        private final String apiKey="DEMO_KEY";
 
         @BeforeEach
         void setUp() {
             MockitoAnnotations.openMocks(this);
-            nasaService = new NasaService(restTemplate, nasaBaseUrl, apiKey);
+            nasaService = new NasaService(restTemplate, templateEngine,mailSender, nasaBaseUrl, apiKey);
         }
 
         @Test
