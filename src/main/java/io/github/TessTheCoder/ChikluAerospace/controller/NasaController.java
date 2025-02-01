@@ -4,11 +4,13 @@ import io.github.TessTheCoder.ChikluAerospace.dto.EmailRequest;
 import io.github.TessTheCoder.ChikluAerospace.dto.NeoResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.PictureResponse;
 import io.github.TessTheCoder.ChikluAerospace.service.NasaService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -41,7 +43,7 @@ public class NasaController {
     }
 
     @PostMapping("/send-email")
-    public ResponseEntity<String> sendEmail(@RequestBody EmailRequest emailRequest) {
+    public ResponseEntity<String> sendEmail(@Valid @RequestBody EmailRequest emailRequest) {
         String response = nasaService.sendEmail(emailRequest);
         return ResponseEntity.ok(response);
     }

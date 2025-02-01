@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -76,16 +77,16 @@ public class NasaService {
 
     // Send email
     public String sendEmail(EmailRequest emailRequest) {
-        try {
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(emailRequest.getReceiverEmail());
             message.setSubject("NASA Data Update");
             message.setText(emailRequest.getMessage());
-
+        try {
             mailSender.send(message);
             logger.info("Email sent successfully to {}", emailRequest.getReceiverEmail());
             return "Email sent successfully!";
-        } catch (Exception e) {
+        } catch (MailException e) {
             logger.error("Error while sending email: {}", e.getMessage());
             return "Failed to send email!";
         }
