@@ -1,10 +1,14 @@
 package io.github.TessTheCoder.ChikluAerospace.service;
 
+import io.github.TessTheCoder.ChikluAerospace.dto.EmailRequest;
 import io.github.TessTheCoder.ChikluAerospace.dto.NeoResponse;
 import io.github.TessTheCoder.ChikluAerospace.dto.PictureResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,15 +25,18 @@ public class NasaService {
     private static final String NASA_NEO_URL = "neo/rest/v1/feed";
     public static final String API_KEY = "api_key";
 
+    private final String nasaBaseUrl;
+    private final String apiKey;
+    private final JavaMailSender mailSender;
 
-    private String nasaBaseUrl;
-    private String apiKey;
-
-
-    public NasaService(RestTemplate restTemplate,@Value("${nasa.api.base}") String nasaBaseUrl,@Value("${nasa.api.key}") String apiKey) {
+    @Autowired
+    public NasaService(RestTemplate restTemplate, JavaMailSender mailSender,
+                       @Value("${nasa.api.base}") String nasaBaseUrl,
+                       @Value("${nasa.api.key}") String apiKey) {
         this.nasaBaseUrl = nasaBaseUrl;
         this.apiKey = apiKey;
         this.restTemplate = restTemplate;
+        this.mailSender = mailSender;
     }
 
     // Fetch the Astronomy Picture of the Day
@@ -57,8 +64,7 @@ public class NasaService {
                 .queryParam("end_date", formattedDate);
 
         String url = uriComponentsBuilder.toUriString();
-        NeoResponse response = restTemplate.getForObject(url, NeoResponse.class);
-        return response;
+        return restTemplate.getForObject(url, NeoResponse.class);
     }
 
     private static String getDateIfRequired(LocalDate date) {
@@ -66,5 +72,22 @@ public class NasaService {
             date = LocalDate.now();
         }
         return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
+    // Send email
+    public String sendEmail(EmailRequest emailRequest) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(emailRequest.getReceiverEmail());
+            message.setSubject("NASA Data Update");
+            message.setText(emailRequest.getMessage());
+
+            mailSender.send(message);
+            logger.info("Email sent successfully to {}", emailRequest.getReceiverEmail());
+            return "Email sent successfully!";
+        } catch (Exception e) {
+            logger.error("Error while sending email: {}", e.getMessage());
+            return "Failed to send email!";
+        }
     }
 }
